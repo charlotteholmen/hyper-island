@@ -4,6 +4,8 @@ import Modal from 'react-modal';
 import TodoForm from './components/todo-form';
 import TodoModel from './models/todo';
 
+// For styling I have added Bootstrap CSS framework in /public/index.html
+// Styling the modal
 const customStyles = {
   content : {
     top                   : '50%',
@@ -15,25 +17,31 @@ const customStyles = {
   }
 };
 
-
 function App() {
-
-  const [ todos, setChosenTodos ] = useState(null);
+  // Set two parameters in your state 
+  // todos is the todo list
+  // chosenTodo is the todo you are editing "right now" in your form
+  const [ todos, setTodos ] = useState(null);
   const [ chosenTodo, setChosenTodo ] = useState(null);
 
+  // use effect will update everytime you change your state
   useEffect(() => {
+
+    // prevent looping useState when you are fetching new todos
     if (todos) {
       return;
     }
 
-    // Create async function
+    // Create async function and get todos
     async function fetchData() {
       let response = await fetch('https://jsonplaceholder.typicode.com/todos')
                                 .then(response => response.json())
 
+      // Slice the array from 200 so it only shows 5
       let todos = response.slice(0, 5);
 
-      setChosenTodos(todos)
+      // Set your todos in state
+      setTodos(todos)
     }
 
     // Call fetch data function
@@ -41,24 +49,29 @@ function App() {
   });
 
   const deleteTodo = (todoId) => {
-    setChosenTodos(todos.filter(todo => todo.id !== todoId));
+    // Set your todos to all todos except the one you are passing in
+    setTodos(todos.filter(todo => todo.id !== todoId));
   }
 
   const startEditing = (todo) => {
+    // Set chosen todo - if you are editing - set your todo
+    // If you are adding a new Todo, just add an empty TodoModel
     setChosenTodo(todo || TodoModel())
   }
 
   const saveTodo = (todo) => {
 
-    // If has an id - update todo
+    // If your todo has an ID you are editing a existing todo
     if (todo.id) {
-      setChosenTodos(todos.map(t => (t.id === todo.id) ? todo : t));
+      // set new todos - map through todos and exchange old todo to new todo
+      const newTodos = todos.map(t => (t.id === todo.id) ? todo : t);
+      setTodos(newTodos);
     } else {
 
-      // If it is a new todo - give an ID and push to todos
+      // If it is a new todo - give the todo an ID and push to todos
       todo.id = todos.length + 1;
       
-      setChosenTodos([
+      setTodos([
         ...todos,
         todo
       ])
@@ -67,6 +80,7 @@ function App() {
     setChosenTodo(null);
   }
 
+  // Close the popup when you set the chosen Todo to null
   const closeModal = () => {
     setChosenTodo(null);
   }
@@ -115,9 +129,7 @@ function App() {
           <div className="modal-container">
             <TodoForm todo={chosenTodo} saveTodo={saveTodo} closeModal={closeModal} />
           </div>
-          
         </Modal>
-
     </div>
   );
 }
